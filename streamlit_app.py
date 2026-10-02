@@ -188,8 +188,8 @@ def plot_cars(model_1, model_2, gas_price=3.15, kwh_price=0.12, grid_emissions_o
     initial_values = plot_func_df[plot_func_df['cumulative_months'] == 0]
 
     position_by_fuelType = {
-        "(w/o Tax Credit)": -1,
-        "(w/ Tax Credit)": -1,
+        "(w/o incentives)": -1,
+        "(w/ incentives)": -1,
         "Regular": 1,
         "Electricity": -1
     }
@@ -246,9 +246,9 @@ def plot_cars(model_1, model_2, gas_price=3.15, kwh_price=0.12, grid_emissions_o
 
     if apply_tax_credit:
         tax_credit_EV_df = EV_model_df
-        tax_credit_EV_df['running_cost_of_ownership'] = tax_credit_EV_df['running_cost_of_ownership'] - 7500
-        tax_credit_EV_df['fuelType'] = '(w/ Tax Credit)'
-        plot_func_df.loc[plot_func_df['fuelType'] == 'Electricity', 'fuelType'] = '(w/o Tax Credit)'        
+        tax_credit_EV_df['running_cost_of_ownership'] = tax_credit_EV_df['running_cost_of_ownership'] - incentives_input
+        tax_credit_EV_df['fuelType'] = '(w/ incentives)'
+        plot_func_df.loc[plot_func_df['fuelType'] == 'Electricity', 'fuelType'] = '(w/o incentives)'        
         plot_func_df = pd.concat([plot_func_df, tax_credit_EV_df])
         color_mapping = {'(w/ Tax Credit)': f'{UCE_blue}', '(w/o Tax Credit)': 'grey', 'Regular': f'{UCE_red}'}
         intersection_point_cost = cost_intersection_point_months(tax_credit_EV_df, ICEV_model_df)
@@ -453,12 +453,21 @@ with st.sidebar:
         index = 5,
         format_func = add_make_to_model
         )
-    
-    st.write('**Step 3:** Set Your Gas and Electricity Prices:')
+     st.title('Vehicle data comes from 2023-2025 models')
+
+  purchase_price_input = st.number_input(
+        label='**Step 3:** What was the purchase price of your vehicle?',
+        min_value=0, 
+        max_value=100000, 
+        value=25000, 
+        step=500,
+        help='Default set to the average purchase price of a used vehicle in Utah according to CARFAX: $25,000',)
+
+    st.write('**Step 4:** Set Your Gas and Electricity Prices:')
     gas_price_slider = st.slider(
         label='Gas Price ($/gallon):', 
         min_value=2.00, 
-        max_value=5.00, 
+        max_value=7.00, 
         value=3.20,
         help='Default set to the average price of gas in Utah: $3.20/gallon',
         label_visibility="visible")
@@ -472,12 +481,15 @@ with st.sidebar:
         help='Default set to the average cost of electricity in Utah: $0.12/kWh',
         label_visibility="visible")
 
-    tax_credit_link = 'https://homes.rewiringamerica.org/federal-incentives/30d-new-ev-tax-incentive'
-    tax_credit_checkbox = st.checkbox(
-        label='**Step 4:** Apply Full Federal Tax Credit?',
-        help='Check this box to include the full, $7,500 Federal Tax Credit for EVs.  For more information, [click here](' + tax_credit_link + ').',
-        value=True
-        )
+    incentives_link = 'https://incentivefinder.utah.gov/'
+    incentives_input = st.number_input(
+        label='**Step 5:** Did you recieve incentives?',
+        min_value=0, 
+        max_value=10000, 
+        value=0, 
+        step=500,
+        help='Use this scale to indicate the amount of incentives you recieved towards the purchase of your vehicle. Incentives are a financial benefit provided by governments, utilities, or automakers to lower the cost of buying an EV. To find more incentives, [click here](' + incentives_link + ').',
+    )
 
     miles_input_box = st.number_input(
         label='**Step 5:** How Many Miles Do You Drive per Year?',
@@ -502,7 +514,7 @@ with st.sidebar:
     st.write('To learn more about this tool, read [How This Tool Works](https://hub.utahcleanenergy.org/wp-content/uploads/2025/04/How-This-Tool-Works.pdf)')
     st.write('Created By Adrian Martino')
 
-plot_cars(model_1=EV_dropdown, model_2=ICEV_dropdown, gas_price=gas_price_slider, kwh_price=electricity_slider, grid_emissions_option=grid_emissions_radio_buttons, miles_per_year=miles_input_box, apply_tax_credit=tax_credit_checkbox)
+plot_cars(model_1=EV_dropdown, model_2=ICEV_dropdown, gas_price=gas_price_slider, kwh_price=electricity_slider, grid_emissions_option=grid_emissions_radio_buttons, miles_per_year=miles_input_box, apply_tax_credit=incentives_input)
 
 st.markdown(' ')
 st.markdown(' ')
